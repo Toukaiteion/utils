@@ -1,0 +1,48 @@
+
+@onMethod可以指定clazz、method、location
+由此组成了在什么时机（location）监控某个/某些类（clazz）下的某个/某些方法（method）
+
+
+
+method：
+  （1）精准定位
+      直接定位到一个方法
+  （2）正则表达式
+      正则表达式在两个"/"之间,
+  （3）按接口或者继承类定位
+      例如要匹配继承或实现了com.kite.base的接口或基类的，只要在类前加上“+”号就可以了
+      //@onMethod(clazz="+com.kite.base", method="doSome")
+  （4）按注解定位
+      在前面加上“@”即可
+      //@onMethod(clazz="@javax.jws.WebService", method="@javax.jws.WebMethod")
+
+location:
+  拦截时机
+  （1）Kind.Entry与Kind.Return
+      分别表示函数的开始与返回，不写location的情况下默认为Entry，仅获取参数值可以用entry，要获取返回值或执行时间要用return
+  （2）Kind.Error、Kind.Throw和Kind.Catch
+      表示异常未被捕获。异常被throw、异常被catch的情况，在参数定义中注入一个throwable的参数，代表异常
+      @OnMethod(clazz = "java.net.ServerSocket", method = "bind", location =@Location(Kind.ERROR))
+      public static void onBind(Throwable exception, @Duration long duration){ }
+  （3）Kind.Call和Kind.Line
+      Kind.Call表示监控的方法调用了哪些方法，例如：
+
+      //@OnMethod(clazz = "com.kite",method = "login",location =
+      //      @Location(value = Kind.CALL, clazz = "/.*/", method = "/.*/", where = Where.AFTER))
+      //public static void onBind(@Self Object self, @TargetInstance Object instance,
+      //                              @TargetMethodOrField String method, @Duration long duration){
+      //        println(strcat("self: ", str(self)));
+      //        println(strcat("instance: ", str(instance)));
+      //        println(strcat("method: ", str(method)));
+      //        println(strcat("duration(ms): ", str(duration / 1000000)));
+      //}
+      @Self 表示当前监控的函数所在类，如果是静态类则为空，@TargetInstance 表示函数中调用的方法或属性所在的类，如果是静态方法则为空，
+      @TargetMethodOrField 表示调用的方法或属性，如果要获取执行时间，那么 where 必须设置为 Where.AFTER
+
+      Kind.Line表示程序的行数
+      //@OnMethod(clazz = "com.kite.demo", location = @Location(value = Kind.LINE, line = 20))
+      //public static void onBind() {
+      //   println("执行到第20行")
+      //}
+
+
